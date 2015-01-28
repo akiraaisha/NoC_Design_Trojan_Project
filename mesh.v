@@ -1,29 +1,35 @@
 
-//FLIT_BITS = {EXTRA + TYPE + Y_ADDR + X_ADDR + APP_ID + DATA}\
+/* Basic FLIT FORMAT
+FLIT_BITS = {EXTRA + TYPE + Y_ADDR + X_ADDR + APP_ID + DATA}*/
 
+
+//////////////////////////////////////////////////////// Include Files///////////////////////////
 `include "rc_arb_xbar.v"
 `include "queue.v"
 `include "network_interface_4.v"
 `include "PowerManager.v"
 //`include "/home/hbokhari/CODES_PAPER_BENCHMARKS/2x2_Mesh_test/verilog/tie_fifo.v"
+////////////////////////////////////////////////////////////////////////////////////////////////
 
 //`define COLLECT_DATA 
 `define SWITCH_EXP
 `timescale 1ns/1ps
+
+
 module mesh (); 
 
-// parameters
+//************************************************ Mesh Parameters ************************************
 
 	localparam N_ROUTER   = 4;
-	localparam R_ID  	  = 4; // Center router in 3x3 mesh
-	localparam RT_ALG     = 0 ; // XY-DOR
-	localparam ROW        = 8;
-	localparam COLOUMN    = 8;
-	localparam ID_BITS    = 6;
-	localparam EXTRA_BITS = 0;
-	localparam TYPE_BITS  = 0;
+	localparam R_ID  	  = 4; 		// Center router in 3x3 mesh
+	localparam RT_ALG     = 0 ; 	// XY-DOR
+	localparam ROW        = 4;		//Modified original value = 8
+	localparam COLOUMN    = 4;		//Modified original value = 8
+	localparam ID_BITS    = 4;		//Modified original value = 6
+	localparam EXTRA_BITS = 2;		//Modified original value = 0
+	localparam TYPE_BITS  = 0;		//Modified original value = 0
 	localparam APP_ID_BITS = 2;
-    localparam DEPTH_BITS = 3;
+   localparam DEPTH_BITS = 3;
 	localparam DATA_WIDTH = 32;
 	localparam FLIT_WIDTH = EXTRA_BITS + TYPE_BITS + ID_BITS + APP_ID_BITS + DATA_WIDTH;
 	
@@ -31,62 +37,72 @@ module mesh ();
   	localparam CORES = SWITCHES;
 	localparam SWITCH_TO_SWITCH = 1 ;
 	localparam VC_BITS = 0;
+//////////////////////////////////////////////////////////////////////////////////////////////////////	
+	
 
-	/* Power */
+//************************************************* Power Parameters **********************************
 	localparam SLOTS = 20;
 	localparam POWER_TICK_RESOLUTION = 1000;
 	localparam WAKE_UP_LATENCY = 20;
 	localparam ACTIVITY_DETECT = 15;
+//////////////////////////////////////////////////////////////////////////////////////////////////////	
+	
 
-	/* Synthetic Traffic*/
+//*********************************************** Synthetic Traffic Parameters **************************
 	localparam UNIFORM = 0, BIT_COMP = 1, TRANS = 2, SHUFFLE = 3; 
 	localparam TRAFFIC = BIT_COMP;
-	 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
 /*TODO*/
-    wire [FLIT_WIDTH - DATA_WIDTH - 1: 0] DUMMY_WIRES [0:SWITCHES-1];
-	wire [1:0] NoC_DEMUX_WIRES [0:SWITCHES-1];
-	/* Power */
-	wire active[0: SWITCHES-1];
-	wire R_active[0: SWITCHES-1];
-	wire NI_active[0: SWITCHES-1];
+   wire [FLIT_WIDTH - DATA_WIDTH - 1: 0] DUMMY_WIRES [0:SWITCHES-1];
+	wire [1:0] NoC_DEMUX_WIRES [0:SWITCHES-1]; //App ID (demonstrated as demux)
+	
+//*************************************************** Power Wires ****************************************
+	wire active[0: SWITCHES-1];					//Activate wire
+	wire R_active[0: SWITCHES-1];					//Router Activation
+	wire NI_active[0: SWITCHES-1];				//Network Interface Activation 
 	wire [15:0]Iteration_no_4_wire;
 	wire [1 :0]Iter_flag[0: SWITCHES-1];
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 	
-	///////////////////////////////////////////////////////////////////////////
-	
-	wire [(FLIT_WIDTH * (SWITCH_TO_SWITCH *4)) - 1: 0] s_flits_in [0: SWITCHES-1];
-	wire [(SWITCH_TO_SWITCH *4) - 1: 0]s_valid_in [0: SWITCHES-1]; 
+	wire [(FLIT_WIDTH * (SWITCH_TO_SWITCH *4)) - 1: 0] 			s_flits_in [0: SWITCHES-1];
+	wire [(SWITCH_TO_SWITCH *4) - 1: 0]  								s_valid_in [0: SWITCHES-1]; 
 	  
-	wire [(FLIT_WIDTH * (SWITCH_TO_SWITCH *4)) - 1: 0] s_flits_out [0: SWITCHES-1]; 
-	wire [(SWITCH_TO_SWITCH *4) - 1: 0] s_valid_out [0: SWITCHES-1]; 
-	wire [(SWITCH_TO_SWITCH *4) - 1: 0] s_waiting_out [0: SWITCHES-1]; /* Power */ 
+	wire [(FLIT_WIDTH * (SWITCH_TO_SWITCH *4)) - 1: 0] 			s_flits_out [0: SWITCHES-1]; 
+	wire [(SWITCH_TO_SWITCH *4) - 1: 0] 								s_valid_out [0: SWITCHES-1]; 
+	wire [(SWITCH_TO_SWITCH *4) - 1: 0] 								s_waiting_out [0: SWITCHES-1];   /* Power Controlling Logic*/ 
 
-	wire [(((1 << VC_BITS) * (SWITCH_TO_SWITCH *4)) - 1): 0] s_empty_in  [0: SWITCHES-1]; 
-	wire [(((1 << VC_BITS) * (SWITCH_TO_SWITCH *4)) - 1): 0] s_full_in  [0: SWITCHES-1]; 
-	wire [(((1 << VC_BITS) * (SWITCH_TO_SWITCH *4)) - 1): 0] s_off_in  [0: SWITCHES-1]; /* Power */ 
+	wire [(((1 << VC_BITS) * (SWITCH_TO_SWITCH *4)) - 1): 0] 	s_empty_in  [0: SWITCHES-1]; 
+	wire [(((1 << VC_BITS) * (SWITCH_TO_SWITCH *4)) - 1): 0]	   s_full_in   [0: SWITCHES-1]; 
+	wire [(((1 << VC_BITS) * (SWITCH_TO_SWITCH *4)) - 1): 0]  	s_off_in    [0: SWITCHES-1]; 		/* Power Controlling Logic*/ 
 
-	wire [(((1 << VC_BITS) * (SWITCH_TO_SWITCH *4)) - 1): 0] s_empty_out [0: SWITCHES-1];
-	wire [(((1 << VC_BITS) * (SWITCH_TO_SWITCH *4)) - 1): 0] s_full_out [0: SWITCHES-1];  
+	wire [(((1 << VC_BITS) * (SWITCH_TO_SWITCH *4)) - 1): 0] 	s_empty_out [0: SWITCHES-1];
+	wire [(((1 << VC_BITS) * (SWITCH_TO_SWITCH *4)) - 1): 0] 	s_full_out  [0: SWITCHES-1];  
 	  
-	wire [(FLIT_WIDTH * SWITCH_TO_SWITCH) - 1: 0] single_s_flits_in [0: (SWITCHES*4)-1]; 
-	wire [SWITCH_TO_SWITCH - 1: 0] single_s_valid_in [0: (SWITCHES*4)-1];  
-	wire [(FLIT_WIDTH * SWITCH_TO_SWITCH) - 1: 0] single_s_flits_out [0: (SWITCHES*4)-1]; 
-	wire [SWITCH_TO_SWITCH - 1: 0] single_s_valid_out [0: (SWITCHES*4)-1];  
-	wire [SWITCH_TO_SWITCH - 1: 0] single_s_waiting_out [0: (SWITCHES*4)-1];  /* Power */
+	wire [(FLIT_WIDTH * SWITCH_TO_SWITCH) - 1: 0]   				single_s_flits_in [0: (SWITCHES*4)-1]; 
+	wire [SWITCH_TO_SWITCH - 1: 0] 										single_s_valid_in [0: (SWITCHES*4)-1];  
+	wire [(FLIT_WIDTH * SWITCH_TO_SWITCH) - 1: 0] 					single_s_flits_out[0: (SWITCHES*4)-1]; 
+	wire [SWITCH_TO_SWITCH - 1: 0] 										single_s_valid_out[0: (SWITCHES*4)-1];  
+	wire [SWITCH_TO_SWITCH - 1: 0]									 	single_s_waiting_out[0: (SWITCHES*4)-1];  /* Power Controlling Logic */
 	  
-	wire [(((1 << VC_BITS) * SWITCH_TO_SWITCH) - 1): 0] single_s_empty_in  [0: (SWITCHES*4)-1]; 
-	wire [(((1 << VC_BITS) * SWITCH_TO_SWITCH) - 1): 0] single_s_full_in  [0: (SWITCHES*4)-1];
-	wire [(((1 << VC_BITS) * SWITCH_TO_SWITCH) - 1): 0] single_s_empty_out  [0: (SWITCHES*4)-1]; 
-	wire [(((1 << VC_BITS) * SWITCH_TO_SWITCH) - 1): 0] single_s_full_out  [0: (SWITCHES*4)-1];
-	wire [(((1 << VC_BITS) * SWITCH_TO_SWITCH) - 1): 0] single_s_off_in  [0: (SWITCHES*4)-1]; /* Power */
+	wire [(((1 << VC_BITS) * SWITCH_TO_SWITCH) - 1): 0] 			single_s_empty_in  [0: (SWITCHES*4)-1]; 
+	wire [(((1 << VC_BITS) * SWITCH_TO_SWITCH) - 1): 0] 			single_s_full_in   [0: (SWITCHES*4)-1];
+	wire [(((1 << VC_BITS) * SWITCH_TO_SWITCH) - 1): 0] 			single_s_empty_out [0: (SWITCHES*4)-1]; 
+	wire [(((1 << VC_BITS) * SWITCH_TO_SWITCH) - 1): 0] 			single_s_full_out  [0: (SWITCHES*4)-1];
+	wire [(((1 << VC_BITS) * SWITCH_TO_SWITCH) - 1): 0] 			single_s_off_in    [0: (SWITCHES*4)-1];  /* Power Controlling Logic*/
 
-	//----------------------------------------------------------------------------
+	//---------------------------------------------------------------------------- 
 	//output from DUT
 	//----------------------------------------------------------------------------	
 	// Outgoing Flits  
-  	wire [(FLIT_WIDTH - 1): 0] 				c_flits_out   [0 : SWITCHES - 1]; /*TODO*/ // Do we need to send Routing bits to core? 
+  	wire [(FLIT_WIDTH - 1): 0] 		c_flits_out   [0 : SWITCHES - 1]; 		/*TODO*/ // Do we need to send Routing bits to core? 
   	wire [0:0]								c_valid_out   [0 : SWITCHES - 1]; 
-	wire [0:0]								c_waiting_out [0 : SWITCHES - 1]; /* Power */
+	wire [0:0]								c_waiting_out [0 : SWITCHES - 1];		/* Power */
     // Outgoing Credits
   	wire [0:0]								c_empty_out [0 : SWITCHES - 1]; 
   	wire [0:0]								c_full_out  [0 : SWITCHES - 1];
@@ -99,47 +115,47 @@ module mesh ();
   	reg reset;
   	
 	// Router ID 
-  	wire [(ID_BITS - 1): 0] 					router_ID[0 : SWITCHES - 1];
+  	wire [(ID_BITS - 1): 0] 			router_ID[0 : SWITCHES - 1];
 	
 	// Incomming Flits
-	wire  [(FLIT_WIDTH - 1): 0] 			c_flits_in [0 : SWITCHES - 1];
+	wire  [(FLIT_WIDTH - 1): 0] 		c_flits_in [0 : SWITCHES - 1];
   	wire  [0:0]								c_valid_in [0 : SWITCHES - 1]; 
 	// Incomming Credits
   	wire  [0:0]								c_empty_in [0 : SWITCHES - 1]; 
-  	wire  [0:0]								c_full_in 	[0 : SWITCHES - 1];
-	wire  [0:0]								c_off_in 	[0 : SWITCHES - 1]; /* Power*/
+  	wire  [0:0]								c_full_in  [0 : SWITCHES - 1];
+	wire  [0:0]								c_off_in   [0 : SWITCHES - 1]; /* Power*/
   
 	wire  [1:0] 							demux_wires [0 : SWITCHES - 1];
 	/* Power */
 	// These wires shall be i/o to/from the per router Power Controller
-	wire 	  	signal_off    			[0 : SWITCHES - 1]; // signal current power 
+	wire 	  									signal_off    			[0 : SWITCHES - 1]; // signal current power 
 															// state of the router (0 -> ON, 1 -> OFF)
 
-	wire 		request_to_on 			[0 : SWITCHES - 1]; // requests coming from 
+	wire 										request_to_on 			[0 : SWITCHES - 1]; // requests coming from 
 															// neighbor routers for switching on
-	wire [3:0]	request_to_on_single 	[0 : SWITCHES - 1]; 
-	wire        request_to_on_from_core [0 : SWITCHES - 1];
+	wire [3:0]								request_to_on_single 	[0 : SWITCHES - 1]; 
+	wire        							request_to_on_from_core [0 : SWITCHES - 1];
 
-	wire pwr_gate	[0 : SWITCHES - 1] ;
-	wire clk_gate	[0 : SWITCHES - 1] ;
+	wire 										pwr_gate	[0 : SWITCHES - 1] ;
+	wire 										clk_gate	[0 : SWITCHES - 1] ;
 
-	wire PM_prog	[0 : SWITCHES - 1] ;
+	wire 										PM_prog	[0 : SWITCHES - 1] ;
 
 	/* More I/O Stuff*/
-	wire [31 : 0]  data_from_NI [0 : SWITCHES - 1];
-	reg 		   rd_NI        [0 : SWITCHES - 1]; 
-	wire 		   empty_NI     [0 : SWITCHES - 1]; 
+	wire [31 : 0]  						data_from_NI [0 : SWITCHES - 1];
+	reg 		   							rd_NI        [0 : SWITCHES - 1]; 
+	wire 		  								empty_NI     [0 : SWITCHES - 1]; 
   
-	reg  [(FLIT_WIDTH - 1): 0]  data_to_NoC  [0 : SWITCHES - 1];
-	reg  		   				valid_to_NoC [0 : SWITCHES - 1];
-	wire  		   				full_from_NoC[0 : SWITCHES - 1];
+	reg  [(FLIT_WIDTH - 1): 0]  		data_to_NoC  [0 : SWITCHES - 1];
+	reg  		   							valid_to_NoC [0 : SWITCHES - 1];
+	wire  		   						full_from_NoC[0 : SWITCHES - 1];
 
 	/* Traffic Pattern Stuff*/
-	wire [(ID_BITS - 1): 0] recv_address [0 : SWITCHES - 1];
+	wire [(ID_BITS - 1): 0] 			recv_address [0 : SWITCHES - 1];
 	/* Power */
-	reg  	  	signal_off_sim    		[0 : SWITCHES - 1];
+	reg  	  									signal_off_sim    		[0 : SWITCHES - 1];
 	
-
+//**************************************************** Clock Signals **********************************************
 	reg CLK = 0;
 	always #0.5 CLK = ~CLK;
 
@@ -160,6 +176,8 @@ module mesh ();
 	//wire CLK_SYS = CLK_4;
 	//integer ticks = 0;	
 	reg [63:0] ticks = 0;
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	
 	
 	/* Synthetic Traffic */
 	localparam NORMAL = 0;
@@ -188,19 +206,19 @@ module mesh ();
 	// For Switch Experiment
 
 	// Slave States
-	localparam SLAVE_NORMAL  = 0;
-    localparam SLAVE_STOPPED = 1;
+	localparam  SLAVE_NORMAL  = 0;
+   localparam  SLAVE_STOPPED = 1;
 
 	// Master States
-	localparam MASTER_WAITING_FOR_COMMAND  = 3'b000;
-    localparam MATSER_SEND_STOP_PACKETS    = 3'b001;
-	localparam MATSER_WAIT_FOR_FLUSH       = 3'b010;
-	localparam MATSER_WAIT_FOR_FLUSH_2     = 3'b011;
-	localparam MATSER_SEND_SWITCH_PACKETS  = 3'b100;
-	localparam MATSER_SEND_ENABLE_PACKETS  = 3'b101;
+	localparam  MASTER_WAITING_FOR_COMMAND  = 3'b000;
+   localparam  MATSER_SEND_STOP_PACKETS    = 3'b001;
+	localparam  MATSER_WAIT_FOR_FLUSH       = 3'b010;
+	localparam  MATSER_WAIT_FOR_FLUSH_2     = 3'b011;
+	localparam  MATSER_SEND_SWITCH_PACKETS  = 3'b100;
+	localparam  MATSER_SEND_ENABLE_PACKETS  = 3'b101;
 
-	reg       slave_PM_state  [0 : SWITCHES - 1];
-	reg [2:0] master_PM_state ;
+	reg         slave_PM_state  [0 : SWITCHES - 1];
+	reg [2:0]   master_PM_state ;
 
 	reg [(FLIT_WIDTH - 1): 0] master_PM_data_flit  = 0;
 	reg                       master_PM_flit_valid = 0;
@@ -1979,20 +1997,57 @@ always @ (negedge pwr_gate[15])
 			reset <= 0;
 	end
 
+	////////**********************************************************************************////////////
+	///////						Displaying Flits			(Mubashir)											///////////
+	///////**********************************************************************************////////////
+integer handle1, handle2, handle3, handle4; 
 
 
-	/*
+	
+	initial begin
+	handle1 = $fopen("dataout.csv","w");
+	handle2 = $fopen("datain.csv","w");
+	handle3 = $fopen("sflitsin.csv","w");
+	handle4 = $fopen("sflitsout.csv","w");
+	end
+
+
 	integer a;	
-	always @ (posedge clk)
+	integer counter ;
+	always @ (posedge CLK)
 	begin
 	 //if (reset)
 	//	flit_counter <= 0;
 	 //else begin	 
+	 
+	 
+	 /////////////////////////////////////////////////////////////////////////////////Working portion
 		for ( a = 0; a < SWITCHES ; a = a + 1) begin	
 			if(c_valid_out [a]) begin 
-				$display ("Data [%b] @ Node [%d] @Time [%d]", c_flits_out[a],a,ticks);
+				$fwrite (handle1, "Data_out:  [%b] \t Node [%d] \tTime [%d]  \n" ,c_flits_out[a],a,ticks);
+				//$display ("Data Out [%b] @ Node [%d] @Time [%d]", c_flits_out[a],a,ticks);
 				//flit_counter <= flit_counter + 1;
 			end
+			if (c_valid_in [a]) begin
+				$fwrite (handle2, "Data_out:  [%b] \t Node [%d] \tTime [%d]  \n" ,c_flits_in[a],a,ticks);
+				//$display ("Data IN  [%b] @ Node [%d] @Time [%d]", c_flits_in[a],a,ticks);
+			end
+			if(s_valid_in [a]) begin 
+				$fwrite (handle3, "Data_out:  [%b] \t Node [%d] \tTime [%d]  \n" ,s_flits_in[a],a,ticks);
+			end
+			if(s_valid_out [a]) begin 
+				$fwrite (handle4, "Data_out:  [%b] \t Node [%d] \tTime [%d]  \n" ,s_flits_out[a],a,ticks);
+			end
 		end
-   end*/
+	///////////////////////////////////////////////////////////////////////////////////////////////
+	
+		
+   end
+	//////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////// End of Modified Code(Mubashir) ////////////////////////////////
+	//////////////////////////////////////////////////////////////////////////////////////////////
+
+
+	
+	
 endmodule
