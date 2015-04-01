@@ -26,12 +26,12 @@ module mesh ();
 	localparam ROW        = 4;		//Modified original value = 8
 	localparam COLOUMN    = 4;		//Modified original value = 8
 	localparam ID_BITS    = 4;		//Modified original value = 6
-	localparam EXTRA_BITS = 2;		//Modified original value = 0
+	localparam EXTRA_BITS = 4;		//Modified original value = 0 Used as source ID
 	localparam TYPE_BITS  = 0;		//Modified original value = 0
 	localparam APP_ID_BITS = 2;
    localparam DEPTH_BITS = 3;
 	localparam DATA_WIDTH = 32;
-	localparam FLIT_WIDTH = EXTRA_BITS + TYPE_BITS + ID_BITS + APP_ID_BITS + DATA_WIDTH;
+	localparam FLIT_WIDTH = EXTRA_BITS  + TYPE_BITS + ID_BITS + APP_ID_BITS + DATA_WIDTH;
 	
 	localparam SWITCHES =  ROW * COLOUMN;
   	localparam CORES = SWITCHES;
@@ -391,6 +391,7 @@ module mesh ();
 					ones = ones + 1;
 				end
 			end
+			
 			$display ("Vector %b ", node_vector);
 			$display ("Ones %d ", ones ); 
 		end
@@ -477,21 +478,21 @@ module mesh ();
 			for (m = 0; m < SWITCHES; m= m + 1) begin
 				//data_to_NoC[m]  <= {recv_address[m],2'b00,32'b00001111000011110000111100001111 };
 				//data_to_NoC[m]  <= {recv_address[m],2'b00,ticks[31:0]};
-
+				
 				`ifdef SWITCH_EXP
 				if ( m == 0) begin
 					if ((NOC_MIGRATE == 0) && (slave_PM_state[m] == SLAVE_NORMAL)) begin
-						data_to_NoC[m]  <= {recv_address[m],2'b00,inj_data_fifo[m][rd_pointer[m]]};
+						data_to_NoC[m]  <= {m,recv_address[m],2'b00,inj_data_fifo[m][rd_pointer[m]]};
 					end
 					else begin
 						data_to_NoC[m]  <= master_PM_data_flit;
 					end
 				end
 				else begin
-					data_to_NoC[m]  <= {recv_address[m],2'b00,inj_data_fifo[m][rd_pointer[m]]};
+					data_to_NoC[m]  <= {m,recv_address[m],2'b00,inj_data_fifo[m][rd_pointer[m]]};//***
 				end
 				`else
-				data_to_NoC[m]  <= {recv_address[m],2'b00,inj_data_fifo[m][rd_pointer[m]]};
+				data_to_NoC[m]  <= {m,recv_address[m],2'b00,inj_data_fifo[m][rd_pointer[m]]};//****
 				`endif
 				//valid_to_NoC[m] <= 1;
 				//valid_to_NoC[m] <= ~ valid_to_NoC[m];
@@ -2000,19 +2001,22 @@ always @ (negedge pwr_gate[15])
 	////////**********************************************************************************////////////
 	///////						Displaying Flits			(Mubashir)											///////////
 	///////**********************************************************************************////////////
-integer handle1, handle2, handle3, handle4; 
+	integer handle1, handle2, handle3, handle4, handle5, handle6; 
 
 
 	
 	initial begin
-	handle1 = $fopen("dataout.csv","w");
-	handle2 = $fopen("datain.csv","w");
-	handle3 = $fopen("sflitsin.csv","w");
-	handle4 = $fopen("sflitsout.csv","w");
+	handle1 = $fopen("c_flits_out.csv","w");
+	handle2 = $fopen("c_flits_in.csv","w");
+	handle3 = $fopen("s_flits_in.csv","w");
+	handle4 = $fopen("s_flits_out.csv","w");
+	handle5 = $fopen("single_s_flits_out.csv","w");
+	handle6 = $fopen("single_sflits_in.csv","w");
+	
 	end
 
 
-	integer a;	
+	integer a,ports;	
 	integer counter ;
 	always @ (posedge CLK)
 	begin
@@ -2024,22 +2028,32 @@ integer handle1, handle2, handle3, handle4;
 	 /////////////////////////////////////////////////////////////////////////////////Working portion
 		for ( a = 0; a < SWITCHES ; a = a + 1) begin	
 			if(c_valid_out [a]) begin 
-				$fwrite (handle1, "Data_out:  [%b] \t Node [%d] \tTime [%d]  \n" ,c_flits_out[a],a,ticks);
+				$fwrite (handle1, "%b \t %d \t %d \n" ,c_flits_out[a],a,ticks);
+				//$fwrite (handle1, "%b \t %d \t%d \n" ,c_flits_out[a],a,ticks);
 				//$display ("Data Out [%b] @ Node [%d] @Time [%d]", c_flits_out[a],a,ticks);
 				//flit_counter <= flit_counter + 1;
 			end
 			if (c_valid_in [a]) begin
-				$fwrite (handle2, "Data_out:  [%b] \t Node [%d] \tTime [%d]  \n" ,c_flits_in[a],a,ticks);
-				//$display ("Data IN  [%b] @ Node [%d] @Time [%d]", c_flits_in[a],a,ticks);
+				//$fwrite (handle2, "%b \t %d \t%d \n" ,c_flits_in[a],a,ticks);
+				$fwrite (handle2, "%b  \t %d \t %d \n", c_flits_in[a],a,ticks);
 			end
 			if(s_valid_in [a]) begin 
-				$fwrite (handle3, "Data_out:  [%b] \t Node [%d] \tTime [%d]  \n" ,s_flits_in[a],a,ticks);
+				$fwrite (handle3, "%b \t %d \t%d   \n" ,s_flits_in[a],a,ticks);
 			end
 			if(s_valid_out [a]) begin 
-				$fwrite (handle4, "Data_out:  [%b] \t Node [%d] \tTime [%d]  \n" ,s_flits_out[a],a,ticks);
+				$fwrite (handle4, " %b \t %d \t %d  \n" ,s_flits_out[a],a,ticks);
 			end
+			for (ports=0; ports <5; ports = ports +1)begin
+				if(single_s_valid_out [a]) begin 
+					$fwrite (handle5, "%b \t %d \t %d \t  %d  \n" ,single_s_flits_out[ports],a,ports,ticks); //Single flits for all ports
+				end
+				if(single_s_valid_in [a]) begin 
+					$fwrite (handle6, " %b \t %d \t %d \t %d  \n" ,single_s_flits_in[ports],a,ports,ticks);
+				end
+			end
+			
 		end
-	///////////////////////////////////////////////////////////////////////////////////////////////
+	///////////////Single_s_flits declaration ""wire[(FLIT_WIDTH * SWITCH_TO_SWITCH) - 1: 0] single_s_flits_in [0: (SWITCHES*4)-1]""
 	
 		
    end

