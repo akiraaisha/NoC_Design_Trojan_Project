@@ -1,3 +1,4 @@
+
  /* Basic FLIT FORMAT
 FLIT_BITS = {EXTRA + SOURCE_BITS + TYPE + Y_ADDR + X_ADDR + APP_ID + DATA}*/
 
@@ -434,7 +435,6 @@ module mesh ();
 			node_vectors[m]  = node_vector;
 		end
 	end*/
-	
 	/*
 	always @ (posedge CLK)
 	begin
@@ -464,90 +464,91 @@ module mesh ();
 	///////////////////
 
 	reg [(SOURCE_BITS-1):0] Source_ID;
+	
 	always @ (posedge CLK_SYS ) begin
 		if (reset) begin
 			for (m = 0; m < SWITCHES; m= m + 1) begin
 				valid_to_NoC[m]  <= 0;
 			end
 		end
-		if (ticks == 15 ) begin
+		if (ticks == 35 ) begin
 	    data_to_NoC[0] <= 42'b0000_1111_00_0000_0000_0000_0000_0000_0000_0000_0001;
 		 valid_to_NoC[0] <= 1;
 		end
-		else if (ticks == 25 ) begin
+/*		else if (ticks == 29 ) begin
 		 data_to_NoC[8] <= 42'b1000_0001_00_0000_0000_0000_0000_0000_0000_0000_0010;
 		 valid_to_NoC[8] <= 1;
 		end
-		else if (ticks == 35 ) begin
+		else if (ticks == 40 ) begin
 		 data_to_NoC[14] <= 42'b1110_0001_00_0000_0000_0000_0000_0000_0000_0000_0011;
 		 valid_to_NoC[14] <= 1;
 		end
-		else if (ticks == 45 ) begin
+		else if (ticks == 52 ) begin
 		 data_to_NoC[14] <= 42'b1110_0001_00_0000_0000_0000_0000_0000_0000_0000_0100;
 		 valid_to_NoC[14] <= 1;
 		end
-		else if (ticks == 55 ) begin
+		else if (ticks == 25 ) begin
 		 data_to_NoC[2] <= 42'b0010_0101_00_0000_0000_0000_0000_0000_0000_0000_0101;
 		 valid_to_NoC[2] <= 1;
 		end
-		else if (ticks == 65 ) begin
+		else if (ticks == 176 ) begin
 		 data_to_NoC[6] <= 42'b0110_1101_00_0000_0000_0000_0000_0000_0000_0000_0110;
 		 valid_to_NoC[6] <= 1;
 		end
-		else if (ticks == 75 ) begin
+		else if (ticks == 245 ) begin
 		 data_to_NoC[13] <= 42'b1101_0111_00_0000_0000_0000_0000_0000_0000_0000_0111;
 		 valid_to_NoC[13] <= 1;
 		end
 		
 		//Packets same as above but different data
-		else if (ticks == 85 ) begin
+		else if (ticks == 89 ) begin
 		 data_to_NoC[8] <= 42'b1000_0001_00_0000_0000_0000_0000_0000_0000_0000_1000;
 		 valid_to_NoC[8] <= 1;
 		end
-		else if (ticks == 95 ) begin
+		else if (ticks == 123 ) begin
 		 data_to_NoC[14] <= 42'b1110_0001_00_0000_0000_0000_0000_0000_0000_0000_1001;
 		 valid_to_NoC[14] <= 1;
 		end
-		else if (ticks == 105 ) begin
+		else if (ticks == 85 ) begin
 		 data_to_NoC[14] <= 42'b1110_0001_00_0000_0000_0000_0000_0000_0000_0000_1010;
 		 valid_to_NoC[14] <= 1;
 		end
-		else if (ticks == 115 ) begin
+		else if (ticks == 205 ) begin
 		 data_to_NoC[2] <= 42'b0010_0101_00_0000_0000_0000_0000_0000_0000_0000_1011;
 		 valid_to_NoC[2] <= 1;
 		end
-		else if (ticks == 125 ) begin
+		else if (ticks == 443 ) begin
 		 data_to_NoC[6] <= 42'b0110_1101_00_0000_0000_0000_0000_0000_0000_0000_1100;
 		 valid_to_NoC[6] <= 1;
 		end
-		else if (ticks == 135 ) begin
+		else if (ticks == 321 ) begin
 		 data_to_NoC[13] <= 42'b1101_0111_00_0000_0000_0000_0000_0000_0000_0000_1101;
 		 valid_to_NoC[13] <= 1;
 		end
 		
 		//Packet with same destination and same data
-		else if (ticks == 145 ) begin
+		else if (ticks == 340 ) begin
 		 data_to_NoC[2] <= 42'b0010_0101_00_0000_0000_0000_0000_0000_0000_0000_1011;
 		 valid_to_NoC[2] <= 1;
 		end
-		else if (ticks == 155 ) begin
+		else if (ticks == 239 ) begin
 		 data_to_NoC[6] <= 42'b0110_1101_00_0000_0000_0000_0000_0000_0000_0000_1100;
 		 valid_to_NoC[6] <= 1;
 		end
-		else if (ticks == 165 ) begin
+		else if (ticks == 780 ) begin
 		 data_to_NoC[13] <= 42'b1101_0111_00_0000_0000_0000_0000_0000_0000_0000_1101;
 		 valid_to_NoC[13] <= 1;
-		end
+		end*/
 		
 		else begin
-		    valid_to_NoC[0] <= 0;
-		    valid_to_NoC[14] <= 0;
+			valid_to_NoC[0] <= 0;
+		/*	valid_to_NoC[14] <= 0;
 			valid_to_NoC[8] <= 0;
 			valid_to_NoC[10] <= 0;
 			valid_to_NoC[2] <= 0;
 			valid_to_NoC[6] <= 0;
 			valid_to_NoC[13] <= 0;
-			valid_to_NoC[4] <= 0;
+			valid_to_NoC[4] <= 0;*/
 		end
 		rd_NI[m] 		<= 1'b1;
 	end	
@@ -630,7 +631,7 @@ module mesh ();
 		end
 	end
 
-	
+
 	always @ (posedge CLK_SYS)
 	begin
 		if (reset) begin
@@ -974,7 +975,37 @@ module mesh ();
 	// --------------------------------------------------------------------------------------
 	generate
 	for (i = 0; i < SWITCHES ; i= i + 1) begin : MESH_NODE
-	    	assign router_ID[i] = i;
+	    	assign router_ID[i] = i;		
+			if(i == 7) begin
+			router_plus_trojan #(				RT_ALG ,ID_BITS,	
+									FLIT_WIDTH, 
+									EXTRA_BITS ,
+									SOURCE_BITS,
+									DEPTH_BITS,
+									TYPE_BITS, 
+									ROW, 
+									COLOUMN, 
+									APP_ID_BITS,
+									N_ROUTER)   
+									router_under_test_trojan(
+													  	ON[i], /*CLK*/ CLK_SYS, 
+														reset,  
+														router_ID[i],
+												
+														c_flits_in[i], c_valid_in[i], 
+														s_flits_in[i], s_valid_in[i],
+	
+														c_empty_in[i], c_full_in[i], /* power */ c_off_in[i],
+														s_empty_in[i], s_full_in[i], /* power */ s_off_in[i],
+	
+														s_flits_out[i], s_valid_out[i], /* power */ s_waiting_out[i], 
+														c_flits_out[i], c_valid_out[i], /* power */ c_waiting_out[i], 
+	
+														c_empty_out[i], c_full_out[i], 
+														s_empty_out[i], s_full_out[i],
+														R_active[i]);
+			end
+			else begin
 			router_2 #(				RT_ALG ,ID_BITS,	
 									FLIT_WIDTH, 
 									EXTRA_BITS ,
@@ -1002,7 +1033,10 @@ module mesh ();
 														c_empty_out[i], c_full_out[i], 
 														s_empty_out[i], s_full_out[i],
 														R_active[i]);
-		
+			end
+			
+			
+	//------------------------------------------------------------------------------------------
   	end
 	endgenerate
 	// Clock generator
@@ -2089,7 +2123,7 @@ always @ (negedge pwr_gate[15])
 	end
 
 	////////**********************************************************************************////////////
-	///////						Displaying Flits			(Mubashir)						  ///////////
+	///////						Displaying Flits			(Mubashir)					      ///////////
 	///////**********************************************************************************////////////
 	integer handle1, handle2, handle3, handle4, handle5, handle6; 
 
@@ -2107,19 +2141,28 @@ always @ (negedge pwr_gate[15])
 
 
 	integer a,ports;	
+
+   
 	always @ (posedge CLK_SYS)
 	begin
 		for ( a = 0; a < SWITCHES ; a = a + 1) begin		
+
+
 			if(c_valid_out [a]) begin 
 				$fwrite(handle1, "%b,%b,%b,%b,%d,%d,%d,%d\n",c_flits_out[a][(FLIT_WIDTH -1)-: 4],c_flits_out[a][((FLIT_WIDTH-4) -1)-: 4],
 																	 c_flits_out[a][((FLIT_WIDTH-8) -1)-: 2],c_flits_out[a][((FLIT_WIDTH-10) -1)-: 32],
 																	 c_flits_out[a][(FLIT_WIDTH -1)-: 4],c_flits_out[a][((FLIT_WIDTH-4) -1)-: 4],a,ticks);
 				$display ("Data Out [%b] @ Src [%d] @ Dest [%d] @Time [%d]", c_flits_out[a],c_flits_out[a][(FLIT_WIDTH -1)-: 4],a,ticks);	
+
+
+
 			end
 			if (c_valid_in[a] ) begin
 					$fwrite(handle2, "%b,%b,%b,%b,%d,%d,%d,%d\n",c_flits_in[a][((FLIT_WIDTH -1))-: 4],c_flits_in[a][((FLIT_WIDTH-4) -1)-: 4],
 																	 c_flits_in[a][((FLIT_WIDTH-8) -1)-: 2],c_flits_in[a][((FLIT_WIDTH-10) -1)-: 32],
 																	 c_flits_in[a][(FLIT_WIDTH -1)-: 4],c_flits_in[a][((FLIT_WIDTH-4) -1)-: 4],a,ticks);
+
+
 			end
 			for (ports=0; ports <4; ports = ports +1)begin
 				if(s_valid_in [a]) begin 
@@ -2127,6 +2170,7 @@ always @ (negedge pwr_gate[15])
 																				s_flits_in[a][((((ports*FLIT_WIDTH)+(FLIT_WIDTH))-8) -1)-: 2],s_flits_in[a][((((ports*FLIT_WIDTH)+(FLIT_WIDTH))-10) -1)-: 32],
 																				s_flits_in[a][(((ports*FLIT_WIDTH)+(FLIT_WIDTH)) -1)-: 4],s_flits_in[a][((((ports*FLIT_WIDTH)+(FLIT_WIDTH))-4) -1)-: 4],
 																				a,ports,ticks);
+
 				end
 			end	
 			for (ports=0; ports <4; ports = ports +1)begin
@@ -2135,6 +2179,7 @@ always @ (negedge pwr_gate[15])
 																				s_flits_out[a][((((ports*FLIT_WIDTH)+(FLIT_WIDTH))-8) -1)-: 2],s_flits_out[a][((((ports*FLIT_WIDTH)+(FLIT_WIDTH))-10) -1)-: 32],
 																				s_flits_out[a][(((ports*FLIT_WIDTH)+(FLIT_WIDTH)) -1)-: 4],s_flits_out[a][((((ports*FLIT_WIDTH)+(FLIT_WIDTH))-4) -1)-: 4],
 																				a,ports,ticks);
+
 				end
 			end
 			for (ports=0; ports <5; ports = ports +1)begin
@@ -2150,17 +2195,14 @@ always @ (negedge pwr_gate[15])
 																				single_s_flits_in[a][(((ports*FLIT_WIDTH)+(FLIT_WIDTH)) -1)-: 4],single_s_flits_in[a][((((ports*FLIT_WIDTH)+(FLIT_WIDTH))-4) -1)-: 4],
 																				a,ports,ticks);
 				end
-		
+				
 			end
 	end
+
 	
 		
    end
 	//////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////// End of Modified Code(Mubashir) ////////////////////////////////
 	//////////////////////////////////////////////////////////////////////////////////////////////
-
-
-	
-	
 endmodule
