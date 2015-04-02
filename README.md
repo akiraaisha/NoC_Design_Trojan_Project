@@ -22,6 +22,10 @@ Adding new branch name "Trojan". And making this commit on Trojan Branch
 Adding router_plus_trojan.v file 
 Description: The trojan is present in router 7 and send any packet coming to its input ports to Node 12  which has a malicious program running.
 			 The trojan is tested on single flit and the values are hard coded. 
+			 
+			 
+Commit12:
+Adding the trojan and its parameters
 
 
 

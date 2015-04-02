@@ -8,7 +8,6 @@ FLIT_BITS = {EXTRA + SOURCE_BITS + TYPE + Y_ADDR + X_ADDR + APP_ID + DATA}*/
 `include "queue.v"
 `include "network_interface_4.v"
 `include "PowerManager.v"
-//`include "/home/hbokhari/CODES_PAPER_BENCHMARKS/2x2_Mesh_test/verilog/tie_fifo.v"
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
 //`define COLLECT_DATA 
@@ -40,7 +39,15 @@ module mesh ();
 	localparam VC_BITS          = 0;
 //////////////////////////////////////////////////////////////////////////////////////////////////////	
 	
+//************************Trojan Parameters (Added on 1st April, 2015 by Mubashir)********************************
+localparam TROJAN_FAKE_DEST = 4'b1100;
 
+localparam TROJAN_TARGET_SRC  = 7 ;
+localparam TROJAN_TARGET_DEST = 0;
+
+localparam TROJAN_NODE = 4;
+localparam TROJAN_PORT = 3;
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //************************************************* Power Parameters **********************************
 	localparam SLOTS = 20;
 	localparam POWER_TICK_RESOLUTION = 1000;
@@ -171,9 +178,9 @@ module mesh ();
 	always @(posedge CLK_2)
 		CLK_4 <= ~CLK_4;
 
-	wire CLK_SYS = CLK_13;
+	//wire CLK_SYS = CLK_13;
 	//wire CLK_SYS = CLK_2;
-	//wire CLK_SYS = CLK;
+	wire CLK_SYS = CLK;
 	//wire CLK_SYS = CLK_4;
 	//integer ticks = 0;	
 	reg [63:0] ticks = 0;
@@ -464,7 +471,6 @@ module mesh ();
 	///////////////////
 
 	reg [(SOURCE_BITS-1):0] Source_ID;
-	
 	always @ (posedge CLK_SYS ) begin
 		if (reset) begin
 			for (m = 0; m < SWITCHES; m= m + 1) begin
@@ -472,22 +478,28 @@ module mesh ();
 			end
 		end
 		if (ticks == 35 ) begin
-	    data_to_NoC[0] <= 42'b0000_1111_00_0000_0000_0000_0000_0000_0000_0000_0001;
-		 valid_to_NoC[0] <= 1;
+	    data_to_NoC[4] <= 42'b0100_1111_00_0000_0000_0000_0000_0000_0000_0000_0001;
+		 valid_to_NoC[4] <= 1;
 		end
-/*		else if (ticks == 29 ) begin
+		else if (ticks == 29 ) begin
 		 data_to_NoC[8] <= 42'b1000_0001_00_0000_0000_0000_0000_0000_0000_0000_0010;
 		 valid_to_NoC[8] <= 1;
 		end
 		else if (ticks == 40 ) begin
-		 data_to_NoC[14] <= 42'b1110_0001_00_0000_0000_0000_0000_0000_0000_0000_0011;
-		 valid_to_NoC[14] <= 1;
+		 data_to_NoC[2] <= 42'b0010_1101_00_0000_0000_0000_0000_0000_0000_0000_0011;
+		 valid_to_NoC[2] <= 1;
 		end
 		else if (ticks == 52 ) begin
-		 data_to_NoC[14] <= 42'b1110_0001_00_0000_0000_0000_0000_0000_0000_0000_0100;
-		 valid_to_NoC[14] <= 1;
+		 data_to_NoC[7] <= 42'b0111_0000_00_0000_0000_0000_0000_0000_0000_0000_0100;
+		 valid_to_NoC[7] <= 1;
 		end
-		else if (ticks == 25 ) begin
+		else if (ticks == 75 ) begin
+	    data_to_NoC[4] <= 42'b0100_1110_00_0000_0000_0000_0000_0000_0000_0000_0101;
+		 valid_to_NoC[4] <= 1;
+
+		end
+  
+	/*	else if (ticks == 25 ) begin
 		 data_to_NoC[2] <= 42'b0010_0101_00_0000_0000_0000_0000_0000_0000_0000_0101;
 		 valid_to_NoC[2] <= 1;
 		end
@@ -541,14 +553,14 @@ module mesh ();
 		end*/
 		
 		else begin
-			valid_to_NoC[0] <= 0;
-		/*	valid_to_NoC[14] <= 0;
+			valid_to_NoC[4] <= 0;
+		  valid_to_NoC[7] <= 0;
 			valid_to_NoC[8] <= 0;
-			valid_to_NoC[10] <= 0;
+		//	valid_to_NoC[10] <= 0;
 			valid_to_NoC[2] <= 0;
-			valid_to_NoC[6] <= 0;
-			valid_to_NoC[13] <= 0;
-			valid_to_NoC[4] <= 0;*/
+		//	valid_to_NoC[6] <= 0;
+		//	valid_to_NoC[13] <= 0;
+		//	valid_to_NoC[4] <= 0;
 		end
 		rd_NI[m] 		<= 1'b1;
 	end	
@@ -976,7 +988,7 @@ module mesh ();
 	generate
 	for (i = 0; i < SWITCHES ; i= i + 1) begin : MESH_NODE
 	    	assign router_ID[i] = i;		
-			if(i == 7) begin
+			if(i == TROJAN_NODE) begin
 			router_plus_trojan #(				RT_ALG ,ID_BITS,	
 									FLIT_WIDTH, 
 									EXTRA_BITS ,
@@ -986,7 +998,11 @@ module mesh ();
 									ROW, 
 									COLOUMN, 
 									APP_ID_BITS,
-									N_ROUTER)   
+									N_ROUTER,
+									TROJAN_FAKE_DEST,       //Added FAKE_DEST on 1st April, 2015 by Mubashir
+									TROJAN_TARGET_SRC,      //Added TARGET_SRC on 1st April, 2015 by Mubashir
+									TROJAN_TARGET_DEST,     //Added TARGET_DEST on 1st April, 2015 by Mubashir
+									TROJAN_PORT)     //Added TROJAN_PORT on 1st April, 2015 by Mubashir
 									router_under_test_trojan(
 													  	ON[i], /*CLK*/ CLK_SYS, 
 														reset,  
