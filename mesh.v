@@ -1,6 +1,6 @@
 
 /* Basic FLIT FORMAT
-FLIT_BITS = {EXTRA + TYPE + Y_ADDR + X_ADDR + APP_ID + DATA}*/
+FLIT_BITS = {EXTRA + SOURCE_BITS + TYPE + Y_ADDR + X_ADDR + APP_ID + DATA}*/
 
 
 //////////////////////////////////////////////////////// Include Files///////////////////////////
@@ -17,7 +17,6 @@ FLIT_BITS = {EXTRA + TYPE + Y_ADDR + X_ADDR + APP_ID + DATA}*/
 
 
 module mesh (); 
-
 //************************************************ Mesh Parameters ************************************
 
 	localparam N_ROUTER   = 4;
@@ -26,12 +25,13 @@ module mesh ();
 	localparam ROW        = 4;		//Modified original value = 8
 	localparam COLOUMN    = 4;		//Modified original value = 8
 	localparam ID_BITS    = 4;		//Modified original value = 6
-	localparam EXTRA_BITS = 4;		//Modified original value = 0 Used as source ID
+	localparam EXTRA_BITS = 0;		//Modified original value = 0 
 	localparam TYPE_BITS  = 0;		//Modified original value = 0
+	localparam SOURCE_BITS = 4;	//******Added
 	localparam APP_ID_BITS = 2;
    localparam DEPTH_BITS = 3;
 	localparam DATA_WIDTH = 32;
-	localparam FLIT_WIDTH = EXTRA_BITS  + TYPE_BITS + ID_BITS + APP_ID_BITS + DATA_WIDTH;
+	localparam FLIT_WIDTH = EXTRA_BITS + SOURCE_BITS + TYPE_BITS + ID_BITS + APP_ID_BITS + DATA_WIDTH;
 	
 	localparam SWITCHES =  ROW * COLOUMN;
   	localparam CORES = SWITCHES;
@@ -463,7 +463,18 @@ module mesh ();
 		end
 	end
 
+	reg [(SOURCE_BITS-1):0] Source_ID;
 	//always @ (posedge CLK)
+	
+
+	
+	
+	
+	
+	
+	
+	
+
 	always @ (posedge CLK_SYS)
 	begin
 		if (reset) begin
@@ -476,6 +487,7 @@ module mesh ();
 
 		else begin
 			for (m = 0; m < SWITCHES; m= m + 1) begin
+				Source_ID = m ;  
 				//data_to_NoC[m]  <= {recv_address[m],2'b00,32'b00001111000011110000111100001111 };
 				//data_to_NoC[m]  <= {recv_address[m],2'b00,ticks[31:0]};
 				
@@ -489,10 +501,10 @@ module mesh ();
 					end
 				end
 				else begin
-					data_to_NoC[m]  <= {m,recv_address[m],2'b00,inj_data_fifo[m][rd_pointer[m]]};//***
+					data_to_NoC[m]  <= {Source_ID,recv_address[m],2'b00,inj_data_fifo[m][rd_pointer[m]]};//***
 				end
 				`else
-				data_to_NoC[m]  <= {m,recv_address[m],2'b00,inj_data_fifo[m][rd_pointer[m]]};//****
+					data_to_NoC[m]  <= {Source_ID,recv_address[m],2'b00,inj_data_fifo[m][rd_pointer[m]]};//****
 				`endif
 				//valid_to_NoC[m] <= 1;
 				//valid_to_NoC[m] <= ~ valid_to_NoC[m];
@@ -889,6 +901,7 @@ module mesh ();
 			router_2 #(				RT_ALG ,ID_BITS,	
 									FLIT_WIDTH, 
 									EXTRA_BITS ,
+									SOURCE_BITS,
 									DEPTH_BITS,
 									TYPE_BITS, 
 									ROW, 

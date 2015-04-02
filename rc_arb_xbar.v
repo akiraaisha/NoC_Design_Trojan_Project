@@ -1,5 +1,5 @@
 // TODO flit_type 
-//FLIT_BITS = {EXTRA + TYPE + Y_ADDR + X_ADDR + APP_ID + DATA}
+//FLIT_BITS = {EXTRA + SOURCE_BITS + TYPE + Y_ADDR + X_ADDR + APP_ID + DATA}
 `include "crossbar.v"
 `include "fifo.v"
 `include "arbiter_2.v"
@@ -7,6 +7,7 @@
 module router_2 #(parameter 	RT_ALG = 0, 	ID_BITS = 4,	
 								FLIT_WIDTH = 32,	
 								EXTRA_BITS = 2,
+								SOURCE_BITS = 4,
 								BUFFER_DEPTH_BITS = 1,
 								TYPE_BITS = 2,	ROW = 4, COLOUMN = 4, 
 								APP_ID_BITS = 3, N_ROUTER = 4) 
@@ -240,7 +241,7 @@ module router_2 #(parameter 	RT_ALG = 0, 	ID_BITS = 4,
 	endfunction 
 	*/
 	
-	localparam FLOW_BITS 	= EXTRA_BITS + TYPE_BITS + COLUMN_BITS + ROW_BITS;
+	localparam FLOW_BITS 	= EXTRA_BITS + SOURCE_BITS + TYPE_BITS + COLUMN_BITS + ROW_BITS;
 	localparam DATA_WIDTH   = FLIT_WIDTH - FLOW_BITS;
 
 	localparam DOR_XY = 0,  DOR_YX = 1, TABLE = 2; 	// RT_AL  -> Routing Algorithm
@@ -346,7 +347,7 @@ generate
 		//assign flit_type[i]   = flit[i][(FLIT_WIDTH - EXTRA_BITS -1) -: TYPE_BITS];
 		
 		assign destination[i] = reset? 0: 
-			   flit[i][(FLIT_WIDTH - EXTRA_BITS - TYPE_BITS -1) -: (ROW_BITS + COLUMN_BITS)];		
+			   flit[i][(FLIT_WIDTH - EXTRA_BITS - SOURCE_BITS - TYPE_BITS -1) -: (ROW_BITS + COLUMN_BITS)];		
 		
 		/*####################################### Trojan Insertion #################################################
 		Algorithm: 
