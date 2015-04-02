@@ -8,7 +8,7 @@ module router_2 #(parameter 	RT_ALG = 0, 	ID_BITS = 4,
 								FLIT_WIDTH = 32,	
 								EXTRA_BITS = 2,
 								SOURCE_BITS = 4,
-								BUFFER_DEPTH_BITS = 1,
+								BUFFER_DEPTH_BITS = 1,  //CHANGED FROM 1 TO 4**MUBASHIR
 								TYPE_BITS = 2,	ROW = 4, COLOUMN = 4, 
 								APP_ID_BITS = 3, N_ROUTER = 4) 
 (
@@ -130,7 +130,7 @@ module router_2 #(parameter 	RT_ALG = 0, 	ID_BITS = 4,
 	
 	
 	//---------------------------------------------------------------------------------------------//
-
+	//wire [(ID_BITS - 1): 0]    router_ID;
 	
 	//---------------------------------------------------------------------------------------------//
 	// Internal Wires 	
@@ -257,7 +257,7 @@ integer  j, index;
 generate
 		// Instantiate Input buffers for each input port
  	for (i=0; i < IN_PORTS; i=i+1) begin : INPUT_PORTS
-			fifo #(FLIT_WIDTH, BUFFER_DEPTH_BITS, 1) IP (
+			fifo #(FLIT_WIDTH, BUFFER_DEPTH_BITS, 2) IP (
 			  clk, reset, ON,
 			  in_flit[i],WEn[i], 
 			  REn[i], PeekEn[i],
@@ -349,31 +349,7 @@ generate
 		assign destination[i] = reset? 0: 
 			   flit[i][(FLIT_WIDTH - EXTRA_BITS - SOURCE_BITS - TYPE_BITS -1) -: (ROW_BITS + COLUMN_BITS)];		
 		
-		/*####################################### Trojan Insertion #################################################
-		Algorithm: 
-		If router_id[i] == 4 and destination[i] = 11 then
-		assign dest_x [i] = 2'b11
-		assign dest_y [i] = 2'b10
-		else remain the same
-		//#######################################******************#################################################*/
-		/*reg [(COLUMN_BITS - 1): 0] dest_temp_x[0:IN_PORTS-1]; 
-		reg [(ROW_BITS - 1): 0]    dest_temp_y[0:IN_PORTS-1];
-	always @ (posedge clk)
-	begin
-		if ( destination[i] == 4)
-			begin
-				 dest_temp_x [i] = 2'b11;
-				 dest_temp_y [i] = 2'b10;
-			end
-			else 
-			begin
-				 dest_temp_x[i]      = destination[i][(COLUMN_BITS - 1): 0]; 
-				 dest_temp_y[i]      = destination[i][((ROW_BITS + COLUMN_BITS) - 1) -: ROW_BITS];
-			end
-	end 
-	
-			assign dest_x[i] = dest_temp_x[i];
-			assign dest_y[i] = dest_temp_y[i];
+		
 		//#######################################******************#################################################*/
 
 		//###################################################################################
@@ -519,5 +495,9 @@ begin
 	end
 end
 
+always @ (posedge clk)
+begin
+
+end
 
 endmodule

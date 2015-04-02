@@ -54,8 +54,9 @@ always @ (posedge clk) begin
 				current_size  <= (wrtEn & ~rdEn & ~filled)? (current_size + 1) : 
 								 (~wrtEn & rdEn & ~bare)? 
 								 (current_size -1): current_size; 
+			//	$display ("Wr: [%b]/t Rd: [%b]", wrtEn, rdEn);
 			end 
-			
+		
       if (wrtEn & filled) begin
            $display ("ERROR: Trying to enqueue data: %h  on a full Q!",  write_data);
            $display ("INFO:  Q depth %d and current Q size %d",Q_DEPTH, current_size);

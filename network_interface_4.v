@@ -48,7 +48,7 @@ assign rdEn_temp[1]     =   ( DEMUX == 2'b11) ? rdEn : 0;
 assign read_data        =   ( DEMUX == 2'b00) ? read_data_temp[0] : ( DEMUX == 2'b11) ? read_data_temp[1]: 0;
 assign empty 			= 	( DEMUX == 2'b00) ? empty_temp[0] : ( DEMUX == 2'b11) ? empty_temp[1]: 1;
 //assign full				=   ( full_temp[0] | full_temp[1]);
-assign full				=   0; //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Edited to send as many packets wanted to core.
+assign full				=   0;  //////////////////////////////////////////////////////////////////////////Edited to sent as many packets wanted to core 
 //assign active 			=	(~empty_temp[0]) | (~empty_temp[1]) | (wrtEn) | (rdEn);
 assign active 			=	(~empty_temp[0]) | (~empty_temp[1]) | (wrtEn);
 

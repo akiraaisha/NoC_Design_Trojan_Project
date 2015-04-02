@@ -1,5 +1,4 @@
-
-/* Basic FLIT FORMAT
+ /* Basic FLIT FORMAT
 FLIT_BITS = {EXTRA + SOURCE_BITS + TYPE + Y_ADDR + X_ADDR + APP_ID + DATA}*/
 
 
@@ -17,26 +16,27 @@ FLIT_BITS = {EXTRA + SOURCE_BITS + TYPE + Y_ADDR + X_ADDR + APP_ID + DATA}*/
 
 
 module mesh (); 
+
 //************************************************ Mesh Parameters ************************************
 
-	localparam N_ROUTER   = 4;
-	localparam R_ID  	  = 4; 		// Center router in 3x3 mesh
-	localparam RT_ALG     = 0 ; 	// XY-DOR
-	localparam ROW        = 4;		//Modified original value = 8
-	localparam COLOUMN    = 4;		//Modified original value = 8
-	localparam ID_BITS    = 4;		//Modified original value = 6
-	localparam EXTRA_BITS = 0;		//Modified original value = 0 
-	localparam TYPE_BITS  = 0;		//Modified original value = 0
-	localparam SOURCE_BITS = 4;	//******Added
+	localparam N_ROUTER    = 4;
+	localparam R_ID  	   = 4; 	// Center router in 3x3 mesh
+	localparam RT_ALG      = 0 ; 	// XY-DOR
+	localparam ROW         = 4;		//Modified original value = 8
+	localparam COLOUMN     = 4;		//Modified original value = 8
+	localparam ID_BITS     = 4;		//Modified original value = 6
+	localparam EXTRA_BITS  = 0;		//Modified original value = 0 
+	localparam TYPE_BITS   = 0;		//Modified original value = 0
+	localparam SOURCE_BITS = 4;		//******Added
 	localparam APP_ID_BITS = 2;
-   localparam DEPTH_BITS = 3;
-	localparam DATA_WIDTH = 32;
-	localparam FLIT_WIDTH = EXTRA_BITS + SOURCE_BITS + TYPE_BITS + ID_BITS + APP_ID_BITS + DATA_WIDTH;
+   localparam DEPTH_BITS   = 3;   
+	localparam DATA_WIDTH  = 32;
+	localparam FLIT_WIDTH  = EXTRA_BITS + SOURCE_BITS + TYPE_BITS + ID_BITS + APP_ID_BITS + DATA_WIDTH;
 	
-	localparam SWITCHES =  ROW * COLOUMN;
-  	localparam CORES = SWITCHES;
+	localparam SWITCHES         =  ROW * COLOUMN;
+  	localparam CORES            = SWITCHES;
 	localparam SWITCH_TO_SWITCH = 1 ;
-	localparam VC_BITS = 0;
+	localparam VC_BITS          = 0;
 //////////////////////////////////////////////////////////////////////////////////////////////////////	
 	
 
@@ -51,7 +51,7 @@ module mesh ();
 //*********************************************** Synthetic Traffic Parameters **************************
 	localparam UNIFORM = 0, BIT_COMP = 1, TRANS = 2, SHUFFLE = 3; 
 	localparam TRAFFIC = BIT_COMP;
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 
@@ -373,7 +373,7 @@ module mesh ();
 			end
 		end
 	end	
-
+/*
 	// Random traffic pattern generator (single vector)
 	function [INJ_VECTOR_LENGHT - 1 : 0 ] random_vector;
 	  input integer inj_rate;
@@ -399,10 +399,6 @@ module mesh ();
 	  end
 	endfunction
 
-	
-
-	
-	//always @ (posedge CLK)
 	always @ (posedge CLK_SYS)
 	begin
 		if (reset) begin
@@ -437,8 +433,8 @@ module mesh ();
 			end
 			node_vectors[m]  = node_vector;
 		end
-	end
-		
+	end*/
+	
 	/*
 	always @ (posedge CLK)
 	begin
@@ -449,6 +445,8 @@ module mesh ();
 		end
 	end
 	*/
+	
+	/*
 	integer burst_measure;
 	always @ (posedge CLK)
 	begin
@@ -462,20 +460,101 @@ module mesh ();
 				burst_measure = 0;	
 		end
 	end
+	*/
+	///////////////////
 
 	reg [(SOURCE_BITS-1):0] Source_ID;
-	//always @ (posedge CLK)
+	always @ (posedge CLK_SYS ) begin
+		if (reset) begin
+			for (m = 0; m < SWITCHES; m= m + 1) begin
+				valid_to_NoC[m]  <= 0;
+			end
+		end
+		if (ticks == 15 ) begin
+	    data_to_NoC[0] <= 42'b0000_1111_00_0000_0000_0000_0000_0000_0000_0000_0001;
+		 valid_to_NoC[0] <= 1;
+		end
+		else if (ticks == 25 ) begin
+		 data_to_NoC[8] <= 42'b1000_0001_00_0000_0000_0000_0000_0000_0000_0000_0010;
+		 valid_to_NoC[8] <= 1;
+		end
+		else if (ticks == 35 ) begin
+		 data_to_NoC[14] <= 42'b1110_0001_00_0000_0000_0000_0000_0000_0000_0000_0011;
+		 valid_to_NoC[14] <= 1;
+		end
+		else if (ticks == 45 ) begin
+		 data_to_NoC[14] <= 42'b1110_0001_00_0000_0000_0000_0000_0000_0000_0000_0100;
+		 valid_to_NoC[14] <= 1;
+		end
+		else if (ticks == 55 ) begin
+		 data_to_NoC[2] <= 42'b0010_0101_00_0000_0000_0000_0000_0000_0000_0000_0101;
+		 valid_to_NoC[2] <= 1;
+		end
+		else if (ticks == 65 ) begin
+		 data_to_NoC[6] <= 42'b0110_1101_00_0000_0000_0000_0000_0000_0000_0000_0110;
+		 valid_to_NoC[6] <= 1;
+		end
+		else if (ticks == 75 ) begin
+		 data_to_NoC[13] <= 42'b1101_0111_00_0000_0000_0000_0000_0000_0000_0000_0111;
+		 valid_to_NoC[13] <= 1;
+		end
+		
+		//Packets same as above but different data
+		else if (ticks == 85 ) begin
+		 data_to_NoC[8] <= 42'b1000_0001_00_0000_0000_0000_0000_0000_0000_0000_1000;
+		 valid_to_NoC[8] <= 1;
+		end
+		else if (ticks == 95 ) begin
+		 data_to_NoC[14] <= 42'b1110_0001_00_0000_0000_0000_0000_0000_0000_0000_1001;
+		 valid_to_NoC[14] <= 1;
+		end
+		else if (ticks == 105 ) begin
+		 data_to_NoC[14] <= 42'b1110_0001_00_0000_0000_0000_0000_0000_0000_0000_1010;
+		 valid_to_NoC[14] <= 1;
+		end
+		else if (ticks == 115 ) begin
+		 data_to_NoC[2] <= 42'b0010_0101_00_0000_0000_0000_0000_0000_0000_0000_1011;
+		 valid_to_NoC[2] <= 1;
+		end
+		else if (ticks == 125 ) begin
+		 data_to_NoC[6] <= 42'b0110_1101_00_0000_0000_0000_0000_0000_0000_0000_1100;
+		 valid_to_NoC[6] <= 1;
+		end
+		else if (ticks == 135 ) begin
+		 data_to_NoC[13] <= 42'b1101_0111_00_0000_0000_0000_0000_0000_0000_0000_1101;
+		 valid_to_NoC[13] <= 1;
+		end
+		
+		//Packet with same destination and same data
+		else if (ticks == 145 ) begin
+		 data_to_NoC[2] <= 42'b0010_0101_00_0000_0000_0000_0000_0000_0000_0000_1011;
+		 valid_to_NoC[2] <= 1;
+		end
+		else if (ticks == 155 ) begin
+		 data_to_NoC[6] <= 42'b0110_1101_00_0000_0000_0000_0000_0000_0000_0000_1100;
+		 valid_to_NoC[6] <= 1;
+		end
+		else if (ticks == 165 ) begin
+		 data_to_NoC[13] <= 42'b1101_0111_00_0000_0000_0000_0000_0000_0000_0000_1101;
+		 valid_to_NoC[13] <= 1;
+		end
+		
+		else begin
+		    valid_to_NoC[0] <= 0;
+		    valid_to_NoC[14] <= 0;
+			valid_to_NoC[8] <= 0;
+			valid_to_NoC[10] <= 0;
+			valid_to_NoC[2] <= 0;
+			valid_to_NoC[6] <= 0;
+			valid_to_NoC[13] <= 0;
+			valid_to_NoC[4] <= 0;
+		end
+		rd_NI[m] 		<= 1'b1;
+	end	
 	
-
 	
-	
-	
-	
-	
-	
-	
-
-	always @ (posedge CLK_SYS)
+		
+	/*always @ (posedge CLK_SYS)
 	begin
 		if (reset) begin
 			for (m = 0; m < SWITCHES; m= m + 1) begin
@@ -530,7 +609,7 @@ module mesh ();
 		end
 	end
 
-	
+	*/
 
 
 	//------------------------------------------------------------------------------
@@ -552,7 +631,6 @@ module mesh ();
 	end
 
 	
-	//always @ (negedge CLK)
 	always @ (posedge CLK_SYS)
 	begin
 		if (reset) begin
@@ -655,9 +733,6 @@ module mesh ();
 	//------------------------------------------------------------------------------
 	// Packet Dest for Synthetic Traffic
 	//------------------------------------------------------------------------------
-
-
-
 	//define shuffle function
 	function integer suffle;
 	  input integer num;
@@ -674,10 +749,12 @@ module mesh ();
 
 	generate // /* Interfacing */
 		for (i = 0; i < SWITCHES; i= i + 1) begin :  Traffic_recv
+			
 				assign recv_address[i] = (TRAFFIC == UNIFORM )? (vector_index):
 										 (TRAFFIC == BIT_COMP)? (~router_ID[i]):
 		                                 (TRAFFIC == TRANS   )? {router_ID[i][((ID_BITS/2) - 1):0], router_ID[i][(ID_BITS - 1) : ((ID_BITS)/2)]}:
 										 (TRAFFIC == SHUFFLE )? suffle(router_ID[i]): ((ROW * COLOUMN) -1) / 2;
+			
 		end
 	endgenerate
 
@@ -768,8 +845,8 @@ module mesh ();
   endgenerate  
 
 	generate /* Power */
-		for (row = 0; row < ROW; row = row + 1) begin 
-			for (col = 0; col < COLOUMN; col = col + 1) begin
+		for (row = 0; row < ROW; row = row + 1) begin :Power_Row
+			for (col = 0; col < COLOUMN; col = col + 1) begin: Power_col
 					
 				assign single_s_off_in[((COLOUMN*row + col)*4) + 0] = (col == 0) ? 0 : signal_off[(COLOUMN*row + col) - 1] ;
 				assign single_s_off_in[((COLOUMN*row + col)*4) + 1] = (row == 0) ? 0 : signal_off[(COLOUMN*(row - 1) + col)] ;
@@ -925,7 +1002,7 @@ module mesh ();
 														c_empty_out[i], c_full_out[i], 
 														s_empty_out[i], s_full_out[i],
 														R_active[i]);
-	//------------------------------------------------------------------------------------------
+		
   	end
 	endgenerate
 	// Clock generator
@@ -2012,7 +2089,7 @@ always @ (negedge pwr_gate[15])
 	end
 
 	////////**********************************************************************************////////////
-	///////						Displaying Flits			(Mubashir)											///////////
+	///////						Displaying Flits			(Mubashir)						  ///////////
 	///////**********************************************************************************////////////
 	integer handle1, handle2, handle3, handle4, handle5, handle6; 
 
@@ -2025,48 +2102,57 @@ always @ (negedge pwr_gate[15])
 	handle4 = $fopen("s_flits_out.csv","w");
 	handle5 = $fopen("single_s_flits_out.csv","w");
 	handle6 = $fopen("single_sflits_in.csv","w");
-	
+
 	end
 
 
 	integer a,ports;	
-	integer counter ;
-	always @ (posedge CLK)
+	always @ (posedge CLK_SYS)
 	begin
-	 //if (reset)
-	//	flit_counter <= 0;
-	 //else begin	 
-	 
-	 
-	 /////////////////////////////////////////////////////////////////////////////////Working portion
-		for ( a = 0; a < SWITCHES ; a = a + 1) begin	
+		for ( a = 0; a < SWITCHES ; a = a + 1) begin		
 			if(c_valid_out [a]) begin 
-				$fwrite (handle1, "%b \t %d \t %d \n" ,c_flits_out[a],a,ticks);
-				//$fwrite (handle1, "%b \t %d \t%d \n" ,c_flits_out[a],a,ticks);
-				//$display ("Data Out [%b] @ Node [%d] @Time [%d]", c_flits_out[a],a,ticks);
-				//flit_counter <= flit_counter + 1;
+				$fwrite(handle1, "%b,%b,%b,%b,%d,%d,%d,%d\n",c_flits_out[a][(FLIT_WIDTH -1)-: 4],c_flits_out[a][((FLIT_WIDTH-4) -1)-: 4],
+																	 c_flits_out[a][((FLIT_WIDTH-8) -1)-: 2],c_flits_out[a][((FLIT_WIDTH-10) -1)-: 32],
+																	 c_flits_out[a][(FLIT_WIDTH -1)-: 4],c_flits_out[a][((FLIT_WIDTH-4) -1)-: 4],a,ticks);
+				$display ("Data Out [%b] @ Src [%d] @ Dest [%d] @Time [%d]", c_flits_out[a],c_flits_out[a][(FLIT_WIDTH -1)-: 4],a,ticks);	
 			end
-			if (c_valid_in [a]) begin
-				//$fwrite (handle2, "%b \t %d \t%d \n" ,c_flits_in[a],a,ticks);
-				$fwrite (handle2, "%b  \t %d \t %d \n", c_flits_in[a],a,ticks);
+			if (c_valid_in[a] ) begin
+					$fwrite(handle2, "%b,%b,%b,%b,%d,%d,%d,%d\n",c_flits_in[a][((FLIT_WIDTH -1))-: 4],c_flits_in[a][((FLIT_WIDTH-4) -1)-: 4],
+																	 c_flits_in[a][((FLIT_WIDTH-8) -1)-: 2],c_flits_in[a][((FLIT_WIDTH-10) -1)-: 32],
+																	 c_flits_in[a][(FLIT_WIDTH -1)-: 4],c_flits_in[a][((FLIT_WIDTH-4) -1)-: 4],a,ticks);
 			end
-			if(s_valid_in [a]) begin 
-				$fwrite (handle3, "%b \t %d \t%d   \n" ,s_flits_in[a],a,ticks);
-			end
-			if(s_valid_out [a]) begin 
-				$fwrite (handle4, " %b \t %d \t %d  \n" ,s_flits_out[a],a,ticks);
+			for (ports=0; ports <4; ports = ports +1)begin
+				if(s_valid_in [a]) begin 
+					$fwrite(handle3, "%b,%b,%b,%b,%d,%d,%d,%d,%d\n",s_flits_in[a][(((ports*FLIT_WIDTH)+(FLIT_WIDTH)) -1)-: 4],s_flits_in[a][((((ports*FLIT_WIDTH)+(FLIT_WIDTH))-4) -1)-: 4],
+																				s_flits_in[a][((((ports*FLIT_WIDTH)+(FLIT_WIDTH))-8) -1)-: 2],s_flits_in[a][((((ports*FLIT_WIDTH)+(FLIT_WIDTH))-10) -1)-: 32],
+																				s_flits_in[a][(((ports*FLIT_WIDTH)+(FLIT_WIDTH)) -1)-: 4],s_flits_in[a][((((ports*FLIT_WIDTH)+(FLIT_WIDTH))-4) -1)-: 4],
+																				a,ports,ticks);
+				end
+			end	
+			for (ports=0; ports <4; ports = ports +1)begin
+				if(s_valid_out [a]) begin
+					$fwrite(handle4, "%b,%b,%b,%b,%d,%d,%d,%d,%d\n",s_flits_out[a][(((ports*FLIT_WIDTH)+(FLIT_WIDTH)) -1)-: 4],s_flits_out[a][((((ports*FLIT_WIDTH)+(FLIT_WIDTH))-4) -1)-: 4],
+																				s_flits_out[a][((((ports*FLIT_WIDTH)+(FLIT_WIDTH))-8) -1)-: 2],s_flits_out[a][((((ports*FLIT_WIDTH)+(FLIT_WIDTH))-10) -1)-: 32],
+																				s_flits_out[a][(((ports*FLIT_WIDTH)+(FLIT_WIDTH)) -1)-: 4],s_flits_out[a][((((ports*FLIT_WIDTH)+(FLIT_WIDTH))-4) -1)-: 4],
+																				a,ports,ticks);
+				end
 			end
 			for (ports=0; ports <5; ports = ports +1)begin
 				if(single_s_valid_out [a]) begin 
-					$fwrite (handle5, "%b \t %d \t %d \t  %d  \n" ,single_s_flits_out[ports],a,ports,ticks); //Single flits for all ports
+					$fwrite (handle5, "%b,%b,%b,%b,%d,%d,%d,%d,%d\n" ,single_s_flits_out[a][(((ports*FLIT_WIDTH)+(FLIT_WIDTH)) -1)-: 4],single_s_flits_out[a][((((ports*FLIT_WIDTH)+(FLIT_WIDTH))-4) -1)-: 4],
+																				single_s_flits_out[a][((((ports*FLIT_WIDTH)+(FLIT_WIDTH))-8) -1)-: 2],single_s_flits_out[a][((((ports*FLIT_WIDTH)+(FLIT_WIDTH))-10) -1)-: 32],
+																				single_s_flits_out[a][(((ports*FLIT_WIDTH)+(FLIT_WIDTH)) -1)-: 4],single_s_flits_out[a][((((ports*FLIT_WIDTH)+(FLIT_WIDTH))-4) -1)-: 4],
+																				a,ports,ticks); //Single flits for all ports
 				end
 				if(single_s_valid_in [a]) begin 
-					$fwrite (handle6, " %b \t %d \t %d \t %d  \n" ,single_s_flits_in[ports],a,ports,ticks);
+					$fwrite (handle6, "%b,%b,%b,%b,%d,%d,%d,%d,%d\n" ,single_s_flits_in[a][(((ports*FLIT_WIDTH)+(FLIT_WIDTH)) -1)-: 4],single_s_flits_in[a][((((ports*FLIT_WIDTH)+(FLIT_WIDTH))-4) -1)-: 4],
+																				single_s_flits_in[a][((((ports*FLIT_WIDTH)+(FLIT_WIDTH))-8) -1)-: 2],single_s_flits_in[a][((((ports*FLIT_WIDTH)+(FLIT_WIDTH))-10) -1)-: 32],
+																				single_s_flits_in[a][(((ports*FLIT_WIDTH)+(FLIT_WIDTH)) -1)-: 4],single_s_flits_in[a][((((ports*FLIT_WIDTH)+(FLIT_WIDTH))-4) -1)-: 4],
+																				a,ports,ticks);
 				end
+		
 			end
-			
-		end
-	///////////////Single_s_flits declaration ""wire[(FLIT_WIDTH * SWITCH_TO_SWITCH) - 1: 0] single_s_flits_in [0: (SWITCHES*4)-1]""
+	end
 	
 		
    end

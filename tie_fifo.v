@@ -29,6 +29,9 @@ module tie_fifo #(parameter DATA_WIDTH = 32, Q_DEPTH_BITS = 6) (
 	wire bare   = (current_size == 0); 
 	wire filled = (current_size == Q_DEPTH); 
 	integer i; 
+//-----------------------------------
+
+
 
 //--------------Code Starts Here----------------------- 
 always @ (posedge clk) begin
@@ -55,7 +58,9 @@ always @ (posedge clk) begin
 								 (~wrtEn & rdEn & ~bare)? 
 								 (current_size -1): current_size; 
 			end 
-	  /*		
+			
+		
+	/////////////////////////////////////////////////////////////////////////////////  		
       if (wrtEn & filled) begin
            $display ("ERROR: Trying to enqueue data: %h  on a full Q!",  write_data);
            $display ("INFO:  Q depth %d and current Q size %d",Q_DEPTH, current_size);
@@ -64,9 +69,9 @@ always @ (posedge clk) begin
 				$display ("INFO: Index [%d] data [%h]",i, queue[i]);
 		   end 
       end
-     // if (rdEn & bare & ~wrtEn) $display ("Warning: Trying to dequeue an empty Q!");
+      if (rdEn & bare & ~wrtEn) $display ("Warning: Trying to dequeue an empty Q!");
       if (peek & bare & ~wrtEn) $display ("Warning: Peeking at an empty Q!");
-	*/
+	/////////////////////////////////////////////////////////////////////////////////*/
   end
 end
 
@@ -77,8 +82,11 @@ assign  read_data   = (wrtEn & (rdEn|peek) & bare)? write_data : queue [front];
 //assign  valid       = (((wrtEn & (rdEn|peek) & bare) | ((rdEn|peek) & ~bare))& ~reset)? 1 : 0;
 //assign  full        = (~reset & (filled | (wrtEn & ~rdEn & (current_size >= BUFF_DEPTH))));
 assign  full        = (~reset & (filled | (current_size >= BUFF_DEPTH)));
+
 //assign  empty       = (reset | bare |(~wrtEn & rdEn & (current_size == 1))); /*TODO for silly Xtensa Interface*/
 assign  empty       = (reset | (bare & ~wrtEn) );
+
+
 
      
 endmodule

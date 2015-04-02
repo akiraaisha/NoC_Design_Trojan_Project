@@ -65,9 +65,9 @@ endgenerate
 // Creating anded matrix .. refer to NoC books for VLSI structure
 //#############################################################
 generate
-		for (a = 0; a < OUT_PORTS; a = a + 1)  begin// for each input port 
-			for (b = 0; b < IN_PORTS; b = b + 1)  begin // i = Col
-				for (c = 0; c < IN_PORTS; c = c + 1) begin // k = Row
+		for (a = 0; a < OUT_PORTS; a = a + 1)  begin: Anded_Matrix// for each input port 
+			for (b = 0; b < IN_PORTS; b = b + 1)  begin: i_col1 // i = Col
+				for (c = 0; c < IN_PORTS; c = c + 1) begin: k_row1 // k = Row
 					assign matrix_and[a][b][c] = (b == c)? 0 :(requests[b] && (p_req_ports[b] == a)) ? pri[a][b][c] : 0; //TODO req[c] -> req[b]
 				end
 			end		
@@ -80,9 +80,9 @@ endgenerate
 // Creating transpose of anded matrix 
 //#############################################################
 generate
-		for (a = 0; a < OUT_PORTS; a = a + 1)  begin// for each input port 
-			for (b = 0; b < IN_PORTS; b = b + 1)  begin // i = Col
-				for (c = 0; c < IN_PORTS; c = c + 1) begin // k = Row
+		for (a = 0; a < OUT_PORTS; a = a + 1)  begin: transpose_matrix// for each input port 
+			for (b = 0; b < IN_PORTS; b = b + 1)  begin: i_col2 // i = Col
+				for (c = 0; c < IN_PORTS; c = c + 1) begin: k_row2 // k = Row
 					assign matrix_and_trans[a][b][c] = matrix_and[a][c][b];
 				end	
 			end		
@@ -95,8 +95,8 @@ endgenerate
 // Disable requests in case of higher pri requests 
 //#############################################################
 generate
-		for (a = 0; a < OUT_PORTS; a = a + 1)  begin// for each input port 
-			for (b = 0; b < IN_PORTS; b = b + 1)  begin // i = Col
+		for (a = 0; a < OUT_PORTS; a = a + 1)begin: req_priority // for each input port 
+			for (b = 0; b < IN_PORTS; b = b + 1)  begin: i_col3 // i = Col
 				assign disable_req[a][b] = |(matrix_and_trans[a][b]);
 			end		
 		end
