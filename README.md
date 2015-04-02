@@ -14,5 +14,8 @@ So thath network always receive packets and never get full.
 Commit9:
 Updating the Readme file after Random Traffic(manually) added 
 
+Commit10:
+Python Script to clean the "s_flits_in.csv" and "s_flits_out.csv" files.
+
 
 
